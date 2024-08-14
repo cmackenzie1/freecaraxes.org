@@ -12,10 +12,17 @@ export class DurableDonation extends DurableObject {
 		return value ?? 0;
 	}
 
-	async increment(): Promise<number> {
+	async increment(amount = 1): Promise<number> {
 		// Increment our stored value and return it.
-		let value: number | undefined = await this.ctx.storage.get('total');
-		value = (value || 0) + 1;
+		let value: number = (await this.ctx.storage.get('total')) ?? 0;
+		value += amount;
+		await this.ctx.storage.put('total', value);
+		return value;
+	}
+
+	async decrement(amount = 1): Promise<number> {
+		let value: number = (await this.ctx.storage.get('total')) ?? 0;
+		value -= amount
 		await this.ctx.storage.put('total', value);
 		return value;
 	}
@@ -24,7 +31,7 @@ export class DurableDonation extends DurableObject {
 const formatCount = (count: number) => {
 	const formatter = new Intl.NumberFormat('en-US');
 	return formatter.format(count);
-}
+};
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -63,13 +70,18 @@ app.get('/', async (c) => {
 
 			<h2>Donations</h2>
 			<p>
-				We are currently at <span id="counter">${formatCount(total)} 🪙</span> of our goal of 10,000,000 🪙 to free Caraxes.
+				We are currently at <span id="counter">${formatCount(total)} 🪙</span> of our goal of 10,000,000 🪙 to free
+				Caraxes.
 			</p>
 
 			<progress value="${total}" max="10000000"></progress>
 
 			<button hx-post="/donate" hx-target="#counter" hx-swap="innerHTML">
-				Donate!
+				Donate 🪙
+			</button>
+
+			<button hx-post="/steal" hx-target="#counter" hx-swap="innerHTML" class="secondary">
+				Steal money 😈
 			</button>
 
 			<div>
@@ -113,6 +125,15 @@ app.post('/donate', async (c) => {
 	const donation = c.env.DONATIONS.get(id);
 
 	const total = await donation.increment();
+
+	return c.html(`<span id="counter">${formatCount(total)} 🪙</span>`);
+});
+
+app.post('/steal', async (c) => {
+	const id = c.env.DONATIONS.idFromName('donation');
+	const donation = c.env.DONATIONS.get(id);
+
+	const total = await donation.decrement();
 
 	return c.html(`<span id="counter">${formatCount(total)} 🪙</span>`);
 });
