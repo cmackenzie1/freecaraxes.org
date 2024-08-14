@@ -21,6 +21,11 @@ export class DurableDonation extends DurableObject {
 	}
 }
 
+const formatCount = (count: number) => {
+	const formatter = new Intl.NumberFormat('en-US');
+	return formatter.format(count);
+}
+
 const app = new Hono<{ Bindings: Bindings }>();
 
 app.get('/', async (c) => {
@@ -58,7 +63,7 @@ app.get('/', async (c) => {
 
 			<h2>Donations</h2>
 			<p>
-				We are currently at <span id="counter">${total} 🪙</span> of our goal of 10,000,000 🪙 to free Caraxes.
+				We are currently at <span id="counter">${formatCount(total)} 🪙</span> of our goal of 10,000,000 🪙 to free Caraxes.
 			</p>
 
 			<progress value="${total}" max="10000000"></progress>
@@ -100,7 +105,7 @@ app.get('/donate', async (c) => {
 
 	const total = await donation.balance();
 
-	return c.html(`<span id="counter">${total} 🪙</span>`);
+	return c.html(`<span id="counter">${formatCount(total)} 🪙</span>`);
 });
 
 app.post('/donate', async (c) => {
@@ -109,7 +114,7 @@ app.post('/donate', async (c) => {
 
 	const total = await donation.increment();
 
-	return c.html(`<span id="counter">${total} 🪙</span>`);
+	return c.html(`<span id="counter">${formatCount(total)} 🪙</span>`);
 });
 
 export default app;
