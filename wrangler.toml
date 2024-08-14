@@ -8,3 +8,13 @@ routes = [
   { pattern = "www.freecaraxes.org", custom_domain = true },
   { pattern = "freecaraxes.org", custom_domain = true }
 ]
+
+
+[durable_objects]
+bindings = [
+  { name = "DONATIONS", class_name = "DurableDonation" }
+]
+
+  [[migrations]]
+  tag = "v1" # Should be unique for each entry
+  new_classes = ["DurableDonation"]
