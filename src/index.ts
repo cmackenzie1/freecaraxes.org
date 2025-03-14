@@ -1,32 +1,10 @@
 import { Hono } from 'hono';
-import { DurableObject } from 'cloudflare:workers';
 import { html } from 'hono/html';
+import { DurableDonation } from './DurableDonation';
 
 type Bindings = {
 	DONATIONS: DurableObjectNamespace<DurableDonation>;
 };
-
-export class DurableDonation extends DurableObject {
-	async balance(): Promise<number> {
-		const value: number | undefined = await this.ctx.storage.get('total');
-		return value ?? 0;
-	}
-
-	async increment(amount = 1): Promise<number> {
-		// Increment our stored value and return it.
-		let value: number = (await this.ctx.storage.get('total')) ?? 0;
-		value += amount;
-		await this.ctx.storage.put('total', value);
-		return value;
-	}
-
-	async decrement(amount = 1): Promise<number> {
-		let value: number = (await this.ctx.storage.get('total')) ?? 0;
-		value -= amount
-		await this.ctx.storage.put('total', value);
-		return value;
-	}
-}
 
 const formatCount = (count: number) => {
 	const formatter = new Intl.NumberFormat('en-US');
@@ -60,12 +38,24 @@ app.get('/', async (c) => {
 
 		</head>
 		<body>
-
+		<header class="container">
+			<nav>
+				<ul>
+					<li><h1>Free Caraxes</h1></li>
+				</ul>
+				<ul>
+					<a href="https://x.com/@Cole_MacKenzie">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-twitter-x"
+								 viewBox="0 0 16 16">
+							<path
+								d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" />
+						</svg>
+					</a>
+				</ul>
+			</nav>
+		</header>
 		<main class="container">
-			<h1>FreeCaraxes</h1>
-
 			<p>Help free Caraxes!</p>
-
 			<p>Every dragon deserves a second chance.</p>
 
 			<h2>Donations</h2>
@@ -84,29 +74,22 @@ app.get('/', async (c) => {
 				Steal money 😈
 			</button>
 
-			<div>
-				<blockquote class="twitter-tweet"><p lang="en" dir="ltr">&quot;Call 1-800-FREE-CARAXES&quot; to save a dragon --
-					<a
-						href="https://twitter.com/hashtag/HOTD?src=hash&amp;ref_src=twsrc%5Etfw">#HOTD</a> <a
-						href="https://twitter.com/hashtag/SarahMcLachlan?src=hash&amp;ref_src=twsrc%5Etfw">#SarahMcLachlan</a> <a
-						href="https://twitter.com/hashtag/whereisdaemon?src=hash&amp;ref_src=twsrc%5Etfw">#whereisdaemon</a> <a
-						href="https://t.co/EHkbxgpumw">pic.twitter.com/EHkbxgpumw</a></p>&mdash; OBCrack (@OBcrack) <a
-					href="https://twitter.com/OBcrack/status/1823122995910476137?ref_src=twsrc%5Etfw">August 12, 2024</a>
-				</blockquote>
-				<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-			</div>
-
+			<blockquote class="twitter-tweet"><p lang="en" dir="ltr">&quot;Call 1-800-FREE-CARAXES&quot; to save a dragon
+				--
+				<a
+					href="https://twitter.com/hashtag/HOTD?src=hash&amp;ref_src=twsrc%5Etfw">#HOTD</a> <a
+					href="https://twitter.com/hashtag/SarahMcLachlan?src=hash&amp;ref_src=twsrc%5Etfw">#SarahMcLachlan</a> <a
+					href="https://twitter.com/hashtag/whereisdaemon?src=hash&amp;ref_src=twsrc%5Etfw">#whereisdaemon</a> <a
+					href="https://t.co/EHkbxgpumw">pic.twitter.com/EHkbxgpumw</a></p>&mdash; OBCrack (@OBcrack) <a
+				href="https://twitter.com/OBcrack/status/1823122995910476137?ref_src=twsrc%5Etfw">August 12, 2024</a>
+			</blockquote>
+			<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 		</main>
 		<footer class="container">
-			<p>#whereisdaemon</p>
-			<p>All credit goes to <a href="https://x.com/OBcrack/status/1823122995910476137">@OBcrack</a> for the original
-				video.
-			</p>
 			<i>This website is purely for entertainment purposes. Enjoy the fun, but don't take anything here too
 				seriously!</i>
 		</footer>
 		</body>
-
 		</html>
 		`);
 });
@@ -138,4 +121,5 @@ app.post('/steal', async (c) => {
 	return c.html(`<span id="counter">${formatCount(total)} 🪙</span>`);
 });
 
+export { DurableDonation } from './DurableDonation';
 export default app;
